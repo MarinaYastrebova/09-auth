@@ -3,7 +3,7 @@ import { api } from '../api';
 export interface User {
   id: string;
   email: string;
-  // додайте інші поля, якщо є
+  avatar: string;
 }
 
 export interface LoginData {

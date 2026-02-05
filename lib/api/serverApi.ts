@@ -17,46 +17,67 @@ export interface FetchNotesParams {
   tag?: string;
 }
 
-const createServerApi = () => {
-  const cookieStore = cookies();
+const getCookieHeader = async (): Promise<string> => {
+  const cookieStore = await cookies();
 
-  const cookieHeader = cookieStore
+  return cookieStore
     .getAll()
-    .map(cookie => `${cookie.name}=${cookie.value}`)
+    .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
     .join('; ');
+};
 
-  return axios.create({
-    baseURL,
+export const fetchNotes = async (params: FetchNotesParams = {}): Promise<FetchNotesResponse> => {
+  const cookieHeader = await getCookieHeader();
+
+  const response = await axios.get<FetchNotesResponse>(`${baseURL}/notes`, {
+    params,
     headers: {
       Cookie: cookieHeader,
     },
     withCredentials: true,
   });
-};
 
-export const fetchNotes = async (params: FetchNotesParams = {}): Promise<FetchNotesResponse> => {
-  const api = createServerApi();
-  const response = await api.get<FetchNotesResponse>('/notes', { params });
   return response.data;
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
-  const api = createServerApi();
-  const response = await api.get<Note>(`/notes/${id}`);
+  const cookieHeader = await getCookieHeader();
+
+  const response = await axios.get<Note>(`${baseURL}/notes/${id}`, {
+    headers: {
+      Cookie: cookieHeader,
+    },
+    withCredentials: true,
+  });
+
   return response.data;
 };
 
 export const getMe = async (): Promise<User> => {
-  const api = createServerApi();
-  const response = await api.get<User>('/users/me');
+  const cookieHeader = await getCookieHeader();
+
+  const response = await axios.get<User>(`${baseURL}/users/me`, {
+    headers: {
+      Cookie: cookieHeader,
+    },
+    withCredentials: true,
+  });
+
   return response.data;
 };
 
 export const checkSession = async (): Promise<User | null> => {
   try {
-    const api = createServerApi();
-    const response = await api.get<User | null>('/auth/session');
-    return response.data;
+    const cookieHeader = await getCookieHeader();
+
+    const response = await axios.get<User>(`${baseURL}/auth/session`, {
+      headers: {
+        Cookie: cookieHeader,
+      },
+      withCredentials: true,
+    });
+
+    return response.data || null;
   } catch {
     return null;
   }
