@@ -10,26 +10,28 @@ export default function SignUpPage() {
   const router = useRouter();
   const [error, setError] = useState('');
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setError('');
 
-    try {
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
-      const formValues: RegisterData = { email, password };
-      await register(formValues);
+    try {
+      await register({ email, password } as RegisterData);
       router.push('/profile');
     } catch (err) {
       const e = err as APIError;
       setError(e.response?.data?.error || e.message || 'Oops... something went wrong');
     }
   };
+
   return (
     <main className={css.mainContent}>
       <h1 className={css.formTitle}>Sign up</h1>
 
-      <form className={css.form} action={handleSubmit}>
+      <form className={css.form} onSubmit={handleSubmit}>
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
           <input id="email" type="email" name="email" className={css.input} required />

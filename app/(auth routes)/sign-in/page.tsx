@@ -10,33 +10,28 @@ export default function SignInPage() {
   const router = useRouter();
   const [error, setError] = useState('');
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setError('');
 
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
     try {
-      const formValues = Object.fromEntries(formData) as unknown as LoginData;
-
-      const res = await login(formValues);
-
-      if (res) {
-        router.push('/profile');
-      } else {
-        setError('Invalid email or password');
-      }
-    } catch (error) {
-      setError(
-        (error as APIError).response?.data?.error ??
-          (error as APIError).message ??
-          'Oops... something went wrong'
-      );
+      await login({ email, password } as LoginData);
+      router.push('/profile');
+    } catch (err) {
+      const e = err as APIError;
+      setError(e.response?.data?.error || e.message || 'Invalid email or password');
     }
   };
 
   return (
     <main className={css.mainContent}>
-      <form className={css.form} action={handleSubmit}>
-        <h1 className={css.formTitle}>Sign in</h1>
+      <h1 className={css.formTitle}>Sign in</h1>
 
+      <form className={css.form} onSubmit={handleSubmit}>
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
           <input id="email" type="email" name="email" className={css.input} required />
