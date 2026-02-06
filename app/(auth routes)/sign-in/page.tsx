@@ -2,33 +2,39 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api/clientApi';
+import { login, LoginData } from '@/lib/api/clientApi';
+import type { APIError } from '@/app/api/api';
 import css from './SignInPage.module.css';
 
 export default function SignInPage() {
   const router = useRouter();
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setError('');
 
-    const formData = new FormData(e.currentTarget);
-
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
     try {
-      await login({ email, password });
-      router.push('/profile');
-    } catch {
-      setError('Invalid email or password');
+      const formValues = Object.fromEntries(formData) as unknown as LoginData;
+
+      const res = await login(formValues);
+
+      if (res) {
+        router.push('/profile');
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (error) {
+      setError(
+        (error as APIError).response?.data?.error ??
+          (error as APIError).message ??
+          'Oops... something went wrong'
+      );
     }
   };
 
   return (
     <main className={css.mainContent}>
-      <form className={css.form} onSubmit={handleSubmit}>
+      <form className={css.form} action={handleSubmit}>
         <h1 className={css.formTitle}>Sign in</h1>
 
         <div className={css.formGroup}>

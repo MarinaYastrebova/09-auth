@@ -38,6 +38,10 @@ export interface RegisterData {
   password: string;
 }
 
+type CheckSessionResponse = {
+  success: boolean;
+};
+
 export const fetchNotes = async (params: FetchNotesParams = {}): Promise<FetchNotesResponse> => {
   const response = await api.get<FetchNotesResponse>('/notes', { params });
   return response.data;
@@ -72,12 +76,12 @@ export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');
 };
 
-export const checkSession = async (): Promise<User | null> => {
+export const checkSession = async (): Promise<boolean> => {
   try {
-    const response = await api.get<User>('/auth/session');
-    return response.data || null;
+    const res = await api.get<CheckSessionResponse>('/auth/session');
+    return res.data.success;
   } catch {
-    return null;
+    return false;
   }
 };
 
