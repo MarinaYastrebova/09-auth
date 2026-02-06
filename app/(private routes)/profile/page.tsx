@@ -1,7 +1,8 @@
+import type { Metadata } from 'next';
 import { getMe } from '@/lib/api/serverApi';
 import ProfilePage from '@/components/ProfilePage/ProfilePage';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Profile Page',
   description: 'User profile',
 };
