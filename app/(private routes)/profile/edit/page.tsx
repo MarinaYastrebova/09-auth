@@ -1,24 +1,37 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { User } from '@/types/user';
 import { updateMe } from '@/lib/api/clientApi';
+import { useAuthStore } from '@/lib/store/authStore';
 import css from './EditProfilePage.module.css';
 
-interface Props {
-  user: User;
-}
-
-export default function EditProfilePage({ user }: Props) {
+export default function EditProfilePage() {
   const router = useRouter();
+
+  const { user, setUser } = useAuthStore();
+
+  if (!user) {
+    return <div className={css.loading}>Loading profile...</div>;
+  }
 
   const updateProfile = async (formData: FormData) => {
     const username = formData.get('username') as string;
 
-    await updateMe({ username });
-    router.push('/profile');
+    try {
+      const updatedUserFromApi = await updateMe({ username });
+
+      if (updatedUserFromApi) {
+        setUser(updatedUserFromApi);
+      } else {
+        setUser({ ...user, username });
+      }
+
+      router.push('/profile');
+    } catch (error) {
+      console.error('Failed to update profile', error);
+      alert('Error updating profile');
+    }
   };
 
   return (
@@ -27,11 +40,12 @@ export default function EditProfilePage({ user }: Props) {
         <h1 className={css.formTitle}>Edit Profile</h1>
 
         <Image
-          src={user.avatar}
+          src={user.avatar || '/default-avatar.png'}
           alt="User Avatar"
           width={120}
           height={120}
           className={css.avatar}
+          priority
         />
 
         <form className={css.profileInfo} action={updateProfile}>
@@ -54,9 +68,9 @@ export default function EditProfilePage({ user }: Props) {
               Save
             </button>
 
-            <Link href="/profile" className={css.cancelButton}>
+            <button type="button" className={css.cancelButton} onClick={() => router.back()}>
               Cancel
-            </Link>
+            </button>
           </div>
         </form>
       </div>

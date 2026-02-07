@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useDebouncedCallback } from 'use-debounce';
 import Link from 'next/link';
 import { fetchNotes, FetchNotesParams } from '@/lib/api/clientApi';
+import { useAuthStore } from '@/lib/store/authStore';
 import NoteList from '@/components/NoteList/NoteList';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import Pagination from '@/components/Pagination/Pagination';
@@ -19,6 +20,8 @@ export default function NotesClient({ tag }: NotesClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const perPage = 12;
 
+  const { user } = useAuthStore();
+
   const tagFilter = tag === 'all' ? undefined : tag;
 
   const { data: response, isLoading } = useQuery({
@@ -29,6 +32,8 @@ export default function NotesClient({ tag }: NotesClientProps) {
       if (searchTerm) queryParams.search = searchTerm;
       return fetchNotes(queryParams);
     },
+
+    enabled: !!user,
   });
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -56,6 +61,8 @@ export default function NotesClient({ tag }: NotesClientProps) {
 
       {isLoading ? (
         <p>Loading notes...</p>
+      ) : !user ? (
+        <p>Checking authorization...</p>
       ) : !response ? (
         <p className={css.empty}>No data available</p>
       ) : response.notes.length > 0 ? (

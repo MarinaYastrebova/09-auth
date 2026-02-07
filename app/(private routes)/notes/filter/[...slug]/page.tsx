@@ -1,6 +1,4 @@
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import type { Metadata } from 'next';
-import { fetchNotes, FetchNotesParams } from '@/lib/api/clientApi';
 import NotesClient from './Notes.client';
 
 type Props = {
@@ -21,44 +19,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${tagTitle} - NoteHub`,
-    description: `View and manage your ${tagTitle.toLowerCase()} in NoteHub. Stay organized and productive.`,
-    openGraph: {
-      title: `${tagTitle} - NoteHub`,
-      description: `View and manage your ${tagTitle.toLowerCase()} in NoteHub. Stay organized and productive.`,
-      url: `https://08-zustand-theta-three.vercel.app/notes/filter/${tag}`,
-      images: [
-        {
-          url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
-          width: 1200,
-          height: 630,
-          alt: `NoteHub - ${tagTitle}`,
-        },
-      ],
-      type: 'website',
-    },
+    description: `View and manage your ${tagTitle.toLowerCase()} in NoteHub.`,
   };
 }
 
 export default async function NotesByTag({ params }: Props) {
   const { slug } = await params;
-  const tag = slug[0];
-  const tagFilter = tag === 'all' ? undefined : tag;
+  const tag = slug && slug.length > 0 ? slug[0] : 'all';
 
-  const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ['notes', tagFilter, 1],
-    queryFn: () => {
-      const queryParams: FetchNotesParams = { page: 1, perPage: 12 };
-      if (tagFilter) queryParams.tag = tagFilter;
-      return fetchNotes(queryParams);
-    },
-  });
-  const dehydratedState = dehydrate(queryClient);
-
-  return (
-    <HydrationBoundary state={dehydratedState}>
-      <NotesClient tag={tag} />
-    </HydrationBoundary>
-  );
+  return <NotesClient tag={tag} />;
 }

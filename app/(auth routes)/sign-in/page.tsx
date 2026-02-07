@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import { login, LoginData } from '@/lib/api/clientApi';
 import type { APIError } from '@/app/api/api';
 import css from './SignInPage.module.css';
+import { useAuthStore } from '@/lib/store/authStore';
 
 export default function SignInPage() {
   const router = useRouter();
   const [error, setError] = useState('');
+
+  const setUser = useAuthStore(state => state.setUser);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,7 +22,8 @@ export default function SignInPage() {
     const password = formData.get('password') as string;
 
     try {
-      await login({ email, password } as LoginData);
+      const user = await login({ email, password } as LoginData);
+      setUser(user);
       router.push('/profile');
     } catch (err) {
       const e = err as APIError;
