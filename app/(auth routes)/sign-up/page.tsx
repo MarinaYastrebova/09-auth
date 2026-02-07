@@ -24,7 +24,7 @@ export default function SignUpPage() {
     try {
       const user = await register({ email, password } as RegisterData);
       setUser(user);
-      router.push('/profile');
+      router.push('/');
     } catch (err) {
       const e = err as APIError;
       setError(e.response?.data?.error || e.message || 'Oops... something went wrong');
